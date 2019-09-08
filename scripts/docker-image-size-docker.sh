@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -o errexit -o nounset -o pipefail
+
 export DOCKER_CLI_EXPERIMENTAL=enabled
 
 echo $(( ( $(docker manifest inspect -v ${1} \

@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
-echo $(( ( $(curl -s ${1} |  \
-            jq '.layers[].size' \
-            | paste -sd+ | bc) \
-           + 500000) \
-         / 1000 \
-         / 1000)) MB
+RESPONSE=$(curl -s ${1})
+SIZES=$(echo ${RESPONSE} | jq '.layers[].size' )
+RET="$?"
+
+if [[ "${RET}" = "0" ]]; then
+    echo $(( ($(echo "${SIZES}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+else
+    echo Response: ${RESPONSE}
+    echo Calcualating size failed
+    exit 1
+fi
+
