@@ -1,4 +1,6 @@
-# query-docker-image-size
+# docker-image-size
+
+[![Build Status](https://travis-ci.org/schnatterer/docker-image-size.svg?branch=master)](https://travis-ci.org/schnatterer/docker-image-size)
 
 Shell scripts for querying the size of a docker image from a registry.
 
@@ -6,6 +8,7 @@ See this [StackOverflow answer](https://stackoverflow.com/a/54813737) for detail
 
 ## Install
 
+* Install `jq`, e.g `sudo apt get install jq`
 * Clone repo
 * Use either
   * directly from repo or 
@@ -15,6 +18,8 @@ See this [StackOverflow answer](https://stackoverflow.com/a/54813737) for detail
 
 There are different implementations to choose from.
 Depending on the registry you query from, not all implementations might work.
+
+I found using `reg` combining the most advantages: reliability and fast responses.
 
 ### Query with [genuinetools/reg](https://github.com/genuinetools/reg)
 
