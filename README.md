@@ -43,6 +43,6 @@ $ scripts/docker-image-size-docker.sh docker.io/debian:stretch-20190204-slim
 Rather inconvenient because URLs is necessary. 
 
 ```bash
-$ scripts/docker-image-size-curl.sh https://gcr.io/v2/distroless/java/manifests/11-debug
+$ scripts/docker-image-size-curl.sh gcr.io/distroless/java:11-debug
 73 MB
 ```
