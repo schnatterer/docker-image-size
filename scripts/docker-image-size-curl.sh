@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+if [[ ! -z "${DEBUG}" ]]; then set -x; fi
+
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
@@ -23,7 +26,7 @@ function main() {
 
     if [[ "${?}" != "0" ]] ||  [[ -z ${RESPONSE} ]]; then fail "response empty"; fi
 
-    SIZES=$(echo ${RESPONSE} | jq '.layers[].size' )
+    SIZES=$(echo ${RESPONSE} | jq -e '.layers[].size' 2>/dev/null)
     RET="$?"
 
     if [[ "${RET}" = "0" ]]; then
@@ -104,7 +107,7 @@ function checkExtraHeaderNecessary() {
     if [[ "${1}" == *"docker.com"* ]] || [[ "${1}" == *"docker.io"* ]]; then
       repo=$(parseRepo $1)
       token="$(curl -sSL "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull" \
-                | jq --raw-output .token)"
+                | jq -e --raw-output .token)"
      echo -n "Authorization: Bearer ${token}"
     fi
 }

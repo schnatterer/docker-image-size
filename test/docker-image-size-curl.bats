@@ -66,4 +66,5 @@ function assertFailure() {
    [[ "${status}" -ne 0 ]]
    [[ ${output} =~ "Response" ]]
    [[ ${output} =~ ${1} ]]
+   [[ ! ${output} =~ "jq: " ]]
 }
