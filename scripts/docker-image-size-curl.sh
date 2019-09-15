@@ -40,13 +40,18 @@ function checkRequiredCommands() {
     missingCommands=""
     for currentCommand in "$@"
     do
-        command -v "${currentCommand}" >/dev/null 2>&1 || missingCommands="${missingCommands} ${currentCommand}"
+        isInstalled "${currentCommand}" || missingCommands="${missingCommands} ${currentCommand}"
     done
 
     if [[ ! -z "${missingCommands}" ]]; then
         fail "Please install the following commands required by this script:${missingCommands}"
     fi
 }
+
+function isInstalled() {
+    command -v "${1}" >/dev/null 2>&1 || return 1
+}
+
 function determineUrl() {
 
     HOST=""
@@ -132,6 +137,6 @@ function error() {
     echo "$@" 1>&2;
 }
 
-DOCKER_HUB_HOST=registry.hub.docker.com
+DOCKER_HUB_HOST=index.docker.io
 
 main "$@"
