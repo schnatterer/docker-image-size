@@ -5,7 +5,11 @@ set -o nounset -o pipefail
 # TODO
 #library/debian@sha256:2a10487719ac6ad15d02d832a8f43bafa9562be7ddc8f8bd710098aa54560cc2
 
+
 function main() {
+
+    checkRequiredCommands curl jq sed awk paste bc
+
     url="$(determineUrl "${1}")"
     header="$(checkExtraHeaderNecessary "${url}")"
 
@@ -29,6 +33,17 @@ function main() {
     fi
 }
 
+function checkRequiredCommands() {
+    missingCommands=""
+    for currentCommand in "$@"
+    do
+        command -v "${currentCommand}" >/dev/null 2>&1 || missingCommands="${missingCommands} ${currentCommand}"
+    done
+
+    if [[ ! -z "${missingCommands}" ]]; then
+        fail "Please install the following commands required by this script:${missingCommands}"
+    fi
+}
 function determineUrl() {
 
     HOST=""
@@ -105,9 +120,13 @@ function failIfEmpty() {
 }
 
 function fail() {
-    echo ${1}
-    echo Calcualating size failed
+    error "$@"
+    error Calcualating size failed
     exit 1
+}
+
+function error() {
+    echo "$@" 1>&2;
 }
 
 DOCKER_HUB_HOST=registry.hub.docker.com
