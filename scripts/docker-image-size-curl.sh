@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
 if [[ ! -z "${DEBUG}" ]]; then set -x; fi
+GOARCH=${GOARCH-"amd64"}
+GOOS=${GOOS-"linux"}
+DOCKER_HUB_HOST=index.docker.io
 
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
-# TODO
-#library/debian@sha256:2a10487719ac6ad15d02d832a8f43bafa9562be7ddc8f8bd710098aa54560cc2
-
-
+# TODO implement repo v1 manifest?
+# TODO implement tests for each implementation to see which ones support which case
+#
 function main() {
 
     checkRequiredCommands curl jq sed awk paste bc
@@ -25,6 +27,7 @@ function main() {
     fi
 
     if [[ "${?}" != "0" ]] ||  [[ -z ${RESPONSE} ]]; then fail "response empty"; fi
+
 
     SIZES=$(echo ${RESPONSE} | jq -e '.layers[].size' 2>/dev/null)
     RET="$?"
@@ -93,14 +96,14 @@ function parseHost() {
 function parseImage() {
     HOST="${2-}" # Might be empty
     if [[ ! -z "$HOST" ]]; then HOST="${HOST}/"; fi
-    IMAGE=$(echo "${1}" | sed "s@^${HOST}\([^:]*\):*.*@\1@")
+    IMAGE=$(echo "${1}" | sed "s|^${HOST}\([^@:]*\):*.*|\1|")
     failIfEmpty ${IMAGE} "Unable to find image name in parameter: ${1}"
     echo ${IMAGE}
 }
 
 function parseTag() {
     IMAGE="${1}"
-    echo "${2}" | sed "s@.*${IMAGE}:*\(.*\)@\1@"
+    echo "${2}" | sed "s|.*${IMAGE}[:@]*\(.*\)|\1|"
 }
 
 function checkExtraHeaderNecessary() {
@@ -131,7 +134,5 @@ function fail() {
 function error() {
     echo "$@" 1>&2;
 }
-
-DOCKER_HUB_HOST=index.docker.io
 
 main "$@"

@@ -33,6 +33,17 @@
     assertSuccess
 }
 
+@test "Returns filesize for repo digest" {
+   run scripts/docker-image-size-curl.sh nginxinc/nginx-unprivileged@sha256:dc95dc03b407a7c49fb0a35c3b835b736dc621024fb14b1e8c2f568d99fffc63
+    assertSuccess
+}
+
+@test "Returns filesize for platform-specific repo digest" {
+    skip
+   run scripts/docker-image-size-curl.sh nginxinc/nginx-unprivileged@sha256:2a10487719ac6ad15d02d832a8f43bafa9562be7ddc8f8bd710098aa54560cc2
+    assertSuccess
+}
+
 @test "Returns filesize for gcr" {
    run scripts/docker-image-size-curl.sh gcr.io/distroless/java:11
     assertSuccess
