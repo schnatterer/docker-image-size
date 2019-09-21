@@ -39,7 +39,6 @@
 }
 
 @test "Returns filesize for platform-specific repo digest" {
-    skip
    run scripts/docker-image-size-curl.sh nginxinc/nginx-unprivileged@sha256:2a10487719ac6ad15d02d832a8f43bafa9562be7ddc8f8bd710098aa54560cc2
     assertSuccess
 }

@@ -9,8 +9,9 @@ set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
 # TODO implement repo v1 manifest?
+# TODO library only on docker.io -> example: r.j3ss.co/reg@sha256:12f48bf43adaa05f14bef571ff8da213767410c2aaf1a1af7d7711848720cf295
+
 # TODO implement tests for each implementation to see which ones support which case
-#
 function main() {
 
     checkRequiredCommands curl jq sed awk paste bc
@@ -18,24 +19,15 @@ function main() {
     url="$(determineUrl "${1}")"
     header="$(checkExtraHeaderNecessary "${url}")"
 
-    # TODO this might be simplified when integrated into determineUrl
-    # If trying to simplify this into a variable "-H $header" you enter quoting hell
-    if [[ ! -z "${header}" ]]; then
-        RESPONSE=$(curl -sL -H "${header}" -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    response=$(queryManifest "${url}" "${header}")
+
+    response=$(checkManifestList "${response}" "${url}" "${header}")
+    sizes=$(echo ${response} | jq -e '.layers[].size' 2>/dev/null)
+
+    if [[ "${?}" = "0" ]]; then
+        echo $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
     else
-        RESPONSE=$(curl -sL -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
-    fi
-
-    if [[ "${?}" != "0" ]] ||  [[ -z ${RESPONSE} ]]; then fail "response empty"; fi
-
-
-    SIZES=$(echo ${RESPONSE} | jq -e '.layers[].size' 2>/dev/null)
-    RET="$?"
-
-    if [[ "${RET}" = "0" ]]; then
-        echo $(( ($(echo "${SIZES}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
-    else
-        fail "Response: ${RESPONSE}"
+        fail "Response: ${response}"
     fi
 }
 
@@ -87,6 +79,20 @@ function determineUrl() {
     echo "https://${EFFECTIVE_HOST:-$HOST}/v2/${EFFECTIVE_IMAGE:-$IMAGE}/manifests/${TAG}"
 }
 
+function queryManifest() {
+    url="${1}"
+    header="${2}"
+    # If trying to simplify this into a variable "-H $header" you enter quoting hell
+    if [[ ! -z "${header}" ]]; then
+        response=$(curl -sL -H "${header}" -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    else
+        response=$(curl -sL -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    fi
+
+    if [[ "${?}" != "0" ]] ||  [[ -z ${response} ]]; then fail "response empty"; fi
+    echo "${response}"
+}
+
 function parseHost() {
     HOST="$(echo ${1} | sed 's@^\([^/]*\)/.*@\1@')"
     failIfEmpty ${HOST} "Unable to find repo Host in parameter: ${1}"
@@ -117,6 +123,24 @@ function checkExtraHeaderNecessary() {
 
 function parseRepo() {
     echo "${1}" | sed 's/.*v2\/\(.*\)\/manifests.*/\1/'
+}
+
+function checkManifestList() {
+  response="${1}"
+  url="${2}"
+  header="${3}"
+
+  mediaType=$(echo ${response} | jq -er '.mediaType' 2>/dev/null)
+  if [[ "${mediaType}" == "application/vnd.docker.distribution.manifest.list.v2+json" ]]; then
+    newDigest=$(echo ${response} | jq -er  ".manifests[] | select(.platform.architecture == \"${GOARCH}\" and .platform.os == \"${GOOS}\") | .digest")
+    if [[ "${?}" = "0" ]]; then
+        newUrl="$(echo ${url} | sed 's|\(.*\)/.*$|\1|')/${newDigest}"
+        response=$(queryManifest "${newUrl}" "${header}")
+    else
+      fail "Response: ${response}"
+    fi
+  fi
+  echo "${response}"
 }
 
 function failIfEmpty() {
