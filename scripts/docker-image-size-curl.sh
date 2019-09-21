@@ -16,7 +16,7 @@ function main() {
     url="$(determineUrl "${1}")"
     header="$(checkExtraHeaderNecessary "${url}")"
 
-    # TODO this might be simplfied when integrated into determineUrl
+    # TODO this might be simplified when integrated into determineUrl
     # If trying to simplify this into a variable "-H $header" you enter quoting hell
     if [[ ! -z "${header}" ]]; then
         RESPONSE=$(curl -sL -H "${header}" -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
@@ -55,9 +55,8 @@ function isInstalled() {
 function determineUrl() {
 
     HOST=""
-    nSlashes="$(countSlashes "${1}")"
 
-    if [[ "${nSlashes}" == "0" ]]; then
+    if [[ ! "${1}" == *"/"* ]]; then
         EFFECTIVE_HOST=${DOCKER_HUB_HOST}
     else
         HOST="$(parseHost ${1})"
@@ -83,10 +82,6 @@ function determineUrl() {
     fi
 
     echo "https://${EFFECTIVE_HOST:-$HOST}/v2/${EFFECTIVE_IMAGE:-$IMAGE}/manifests/${TAG}"
-}
-
-function countSlashes() {
-    echo awk -F"/" '{print NF-1}' <<< "${1}"
 }
 
 function parseHost() {

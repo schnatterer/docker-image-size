@@ -21,9 +21,15 @@
     assertSuccess
 }
 
-@test "Returns filesize for docker repo with tag" {
+@test "Returns filesize for docker hub repo with tag" {
     # This returns a manifest v1 if no content type set
    run scripts/docker-image-size-curl.sh nginxinc/nginx-unprivileged:1.17.2
+    assertSuccess
+}
+
+@test "Returns filesize for docker library with tag" {
+    # This returns a manifest v1 if no content type set
+   run scripts/docker-image-size-curl.sh nginx:1.17.2
     assertSuccess
 }
 
