@@ -4,13 +4,13 @@ language: node_js
 node_js: '10.15.1'
 
 before_install:
- #- sudo add-apt-repository ppa:duggan/bats --yes
  - sudo apt-get update -qq
  - sudo apt-get install -qq jq
- #- sudo apt-get install -qq bats
 
 install:
  - npm install bats
 
 script:
- - node_modules/bats/bin/bats test/*.bats
+ - COMMAND=scripts/docker-image-size-curl.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats
+ - COMMAND=scripts/docker-image-size-reg.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats
+ - COMMAND=scripts/docker-image-size-docker.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats

@@ -151,7 +151,7 @@ function failIfEmpty() {
 
 function fail() {
     error "$@"
-    error Calcualating size failed
+    error Calculating size failed
     exit 1
 }
 
