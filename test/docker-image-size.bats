@@ -78,6 +78,7 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 @test "Returns filesize for quay.io ${COMMAND}" {
+    skipFor "reg"
    run ${COMMAND} quay.io/prometheus/prometheus:v2.12.0
     assertSuccess
 }
