@@ -36,8 +36,6 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 @test "Returns filesize for repo digest ${COMMAND}" {
-    skipFor "docker"
-
    run ${COMMAND} nginxinc/nginx-unprivileged@sha256:dc95dc03b407a7c49fb0a35c3b835b736dc621024fb14b1e8c2f568d99fffc63
     assertSuccess
 }
@@ -51,7 +49,6 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 @test "Returns filesize for gcr ${COMMAND}" {
-    skipFor "docker" # TODO implement this
    run ${COMMAND} gcr.io/distroless/java:11
     assertSuccess
 }

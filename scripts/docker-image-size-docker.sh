@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 if [[ ! -z "${DEBUG}" ]]; then set -x; fi
+GOARCH=${GOARCH-"amd64"}
+GOOS=${GOOS-"linux"}
 
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
@@ -11,13 +13,25 @@ function main() {
 
     checkRequiredCommands docker jq
 
-    sizes=$(docker manifest inspect -v ${1} \
-        | jq -e '.[] | select(.Descriptor.platform.architecture == "amd64").SchemaV2Manifest.layers[0].size' 2>/dev/null)
+    manifest=$(docker manifest inspect -v ${1})
+    if [[ "${?}" != "0" ]]; then
+      fail "Calling docker manifest failed"
+    fi
 
-    if [[ "${?}" = "0" ]]; then
+    if [[ "${manifest:0:1}" == "[" ]]; then
+      sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[0].size")
+      if [[ "${?}" = "0" ]]; then
         echo $(( ($(echo "${sizes}") + 500000) / 1000 / 1000)) MB
+       else
+         fail "Processing response from docker manifest failed. Response: ${manifest}"
+       fi
     else
-        fail "Calling docker manifest failed"
+      sizes=$( echo "${manifest}" | jq -e '.SchemaV2Manifest.layers[].size')
+      if [[ "${?}" = "0" ]]; then
+          echo $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+      else
+          fail "Processing response from docker manifest failed. Response: ${manifest}"
+      fi
     fi
 }
 
