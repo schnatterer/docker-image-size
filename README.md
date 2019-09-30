@@ -15,7 +15,7 @@ See this [StackOverflow answer](https://stackoverflow.com/a/54813737) for detail
   * directly from repo or 
   *  more convenient `sudo ln -s $(pwd)/scripts/docker-image-size-reg.sh  /usr/local/bin/docker-image-size`
 
-## Examples
+## Features / implementations
 
 There are different implementations to choose from.
 Depending on the registry you query from, not all implementations might work.
@@ -57,12 +57,9 @@ A bit slower than the others. Requires `docker`.
 # This repo only works with -docker.sh
 $ scripts/docker-image-size-docker.sh mcr.microsoft.com/windows/servercore:1903
 1527 MB
-
 ```
 
 ### Query with `curl`
-
-Rather inconvenient because URLs is necessary. 
 
 ```bash
 $ scripts/docker-image-size-curl.sh gcr.io/distroless/java:11-debug
@@ -71,3 +68,28 @@ $ scripts/docker-image-size-curl.sh gcr.io/distroless/java:11-debug
 $ scripts/docker-image-size-curl.sh quay.io/prometheus/prometheus:v2.12.0
 55 MB
 ```
+
+## Compare sizes of docker tags
+
+By combining`reg` and `docker-image-size` you can easily create a comparison of docker image variants sizes on the 
+command line:
+
+```bash
+$ docker run r.j3ss.co/reg tags maven | grep -e '^3.6.2'  | \
+    xargs -I{}  scripts/docker-image-size-curl.sh "maven:{}"
+maven:3.6.2: 320 MB
+maven:3.6.2-amazoncorretto-11: 338 MB
+maven:3.6.2-amazoncorretto-8: 262 MB
+maven:3.6.2-ibmjava: 247 MB
+maven:3.6.2-ibmjava-8: 247 MB
+maven:3.6.2-ibmjava-8-alpine: 185 MB
+maven:3.6.2-ibmjava-alpine: 185 MB
+maven:3.6.2-jdk-11: 320 MB
+maven:3.6.2-jdk-11-slim: 238 MB
+maven:3.6.2-jdk-12: 257 MB
+maven:3.6.2-jdk-13: 263 MB
+maven:3.6.2-jdk-14: 264 MB
+maven:3.6.2-jdk-8: 229 MB
+maven:3.6.2-jdk-8-slim: 147 MB
+maven:3.6.2-slim: 238 MB
+``` 
