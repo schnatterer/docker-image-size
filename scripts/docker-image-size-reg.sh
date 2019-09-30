@@ -7,6 +7,7 @@ set -o nounset -o pipefail
 
 function main() {
 
+    checkArgs "$@"
     checkRequiredCommands jq paste bc
 
     regCommand="reg"
@@ -26,6 +27,14 @@ function main() {
     else
         fail "Calling reg failed"
     fi
+}
+
+function checkArgs() {
+
+  if [[ $# < 1 ]]; then
+    echo "Usage: $(basename "$0") NAME[:TAG|@DIGEST]"
+    exit 1
+  fi
 }
 
 function checkRequiredCommands() {

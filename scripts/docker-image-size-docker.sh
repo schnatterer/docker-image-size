@@ -11,7 +11,8 @@ export DOCKER_CLI_EXPERIMENTAL=enabled
 
 function main() {
 
-    checkRequiredCommands docker jq
+    checkArgs "$@"
+    checkRequiredCommands docker jq paste bc
 
     manifest=$(docker manifest inspect -v ${1})
     if [[ "${?}" != "0" ]]; then
@@ -33,6 +34,14 @@ function main() {
           fail "Processing response from docker manifest failed. Response: ${manifest}"
       fi
     fi
+}
+
+function checkArgs() {
+
+  if [[ $# < 1 ]]; then
+    echo "Usage: $(basename "$0") NAME[:TAG|@DIGEST]"
+    exit 1
+  fi
 }
 
 function checkRequiredCommands() {

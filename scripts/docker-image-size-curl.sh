@@ -8,12 +8,15 @@ DOCKER_HUB_HOST=index.docker.io
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
+# TODO print image name
+
 # TODO implement repo v1 manifest?
 # TODO library only on docker.io -> example: r.j3ss.co/reg@sha256:12f48bf43adaa05f14bef571ff8da213767410c2aaf1a1af7d7711848720cf295
 
 # TODO implement tests for each implementation to see which ones support which case
 function main() {
 
+    checkArgs "$@"
     checkRequiredCommands curl jq sed awk paste bc
 
     url="$(determineUrl "${1}")"
@@ -29,6 +32,14 @@ function main() {
     else
         fail "Response: ${response}"
     fi
+}
+
+function checkArgs() {
+
+  if [[ $# < 1 ]]; then
+    echo "Usage: $(basename "$0") NAME[:TAG|@DIGEST]"
+    exit 1
+  fi
 }
 
 function checkRequiredCommands() {
