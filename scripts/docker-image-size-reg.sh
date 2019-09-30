@@ -23,7 +23,7 @@ function main() {
     sizes=$(eval "${regCommand} manifest ${1}"  | jq -e '.layers[].size' 2>/dev/null)
 
     if [[ "${?}" = "0" ]]; then
-        echo $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
     else
         fail "Calling reg failed"
     fi

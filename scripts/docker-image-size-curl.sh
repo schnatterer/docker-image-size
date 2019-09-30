@@ -8,8 +8,6 @@ DOCKER_HUB_HOST=index.docker.io
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
-# TODO print image name
-
 # TODO library only on docker.io -> example: r.j3ss.co/reg@sha256:12f48bf43adaa05f14bef571ff8da213767410c2aaf1a1af7d7711848720cf295
 
 function main() {
@@ -26,7 +24,7 @@ function main() {
     sizes=$(echo ${response} | jq -e '.layers[].size' 2>/dev/null)
 
     if [[ "${?}" = "0" ]]; then
-        echo $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
     else
         fail "Response: ${response}"
     fi

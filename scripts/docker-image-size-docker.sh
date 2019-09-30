@@ -27,14 +27,14 @@ function main() {
       fi
 
       if [[ "${?}" = "0" ]]; then
-        echo $(( ($(echo "${sizes}") + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(( ($(echo "${sizes}") + 500000) / 1000 / 1000)) MB
        else
          fail "Processing response from docker manifest failed. Response: ${manifest}"
        fi
     else
       sizes=$( echo "${manifest}" | jq -e '.SchemaV2Manifest.layers[].size')
       if [[ "${?}" = "0" ]]; then
-          echo $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+          echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
       else
           fail "Processing response from docker manifest failed. Response: ${manifest}"
       fi
