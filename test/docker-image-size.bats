@@ -7,6 +7,13 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     assertSuccess
 }
 
+@test "Returns filesize for 'library' at other repo ${COMMAND}" {
+   skipFor "curl"
+
+   run ${COMMAND} r.j3ss.co/reg:v0.16.0
+   assertSuccess
+}
+
 @test "Returns filesize for docker hub library qualified with repo ${COMMAND}" {
    run ${COMMAND} docker.io/debian
     assertSuccess
@@ -26,6 +33,15 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 @test "Returns filesize for docker hub repo with tag ${COMMAND}" {
     # This returns a manifest v1 if no content type set
    run ${COMMAND} nginxinc/nginx-unprivileged:1.17.2
+    assertSuccess
+}
+
+@test "Returns filesize for V1 Manifest ${COMMAND}" {
+    skipFor "reg"
+    skipFor "docker"
+    skipFor "curl"
+
+   run ${COMMAND} quay.io/calico/node:v3.2.4-2-g41efb10-amd64
     assertSuccess
 }
 
@@ -53,12 +69,26 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     assertSuccess
 }
 
+@test "Returns filesize for mcr ${COMMAND}" {
+    skipFor "reg"
+    skipFor "curl"
+
+   run ${COMMAND} mcr.microsoft.com/windows/servercore:1903
+    assertSuccess
+}
+
+@test "Returns filesize for quay.io ${COMMAND}" {
+   run ${COMMAND} quay.io/prometheus/prometheus:v2.12.0
+    assertSuccess
+}
+
+
 @test "Returns non zero and error message on manifest unknown ${COMMAND}" {
    run ${COMMAND} gcr.io/distroless/java:NOTEXISTS
     assertFailure "Calculating size failed"
 }
 
-@test "Returns non zero and error message on repo unknow ${COMMAND}" {
+@test "Returns non zero and error message on repo unknown ${COMMAND}" {
    run ${COMMAND} gcr.io/distroless/something/completely/different
     assertFailure "Calculating size failed"
 }
@@ -74,7 +104,7 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 function assertSuccess() {
-   echo $output
+   echo ${output}
 
    [[ "${status}" -eq 0 ]]
    [[ ${output} =~ " MB" ]]
@@ -82,10 +112,9 @@ function assertSuccess() {
 }
 
 function assertFailure() {
-    echo $output
+    echo ${output}
 
    [[ "${status}" -ne 0 ]]
-   [[ ${output} =~ "Calculating size failed" ]]
    [[ ${output} =~ ${1} ]]
    [[ ! ${output} =~ "jq: " ]]
 }

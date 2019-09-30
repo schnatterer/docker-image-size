@@ -20,11 +20,21 @@ See this [StackOverflow answer](https://stackoverflow.com/a/54813737) for detail
 There are different implementations to choose from.
 Depending on the registry you query from, not all implementations might work.
 
-Advantages:
+See [unit tests](test/docker-image-size.bats) for more details.
 
-* combining `reg` fast responses
-* `docker` can handle most repos
-* `curl` bash-only implementation, should run in all environments, even when they don't support docker.
+|   | curl | docker | reg |
+|---|---|---|---|
+|with/without tag | ✔️ | ✔️ | ✔️ |
+|repo digest | ✔️ | ✔️ | ✔️ |
+|platform-specific digest | ✔️ | ❌ | ❌ |
+|private repos | ❌ | ✔️ | ️✔️ |
+|speed | fastest | slowest️ | ️in between️ |
+|manifest v1 | ❌ | ❌ | ❌ |
+|docker hub| ✔️ | ✔️ | ✔️ |
+|gcr.io | ✔️ | ✔️ | ✔️ |
+|quay.io | ✔️ | ✔️ | ❌️ |
+|mcr.microsoft.com | ❌ | ✔️ | ❌ |
+|r.j3ss.co | ❌ | ️✔️ | ✔️ |
 
 ### Query with [genuinetools/reg](https://github.com/genuinetools/reg)
 

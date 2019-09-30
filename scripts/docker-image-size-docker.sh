@@ -20,7 +20,12 @@ function main() {
     fi
 
     if [[ "${manifest:0:1}" == "[" ]]; then
-      sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[0].size")
+      if [[ $(echo "${manifest}" |  jq '. | length') == 1 ]]; then
+        sizes=$( echo "${manifest}" | jq -e ".[] | .SchemaV2Manifest.layers[0].size")
+      else
+        sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[0].size")
+      fi
+
       if [[ "${?}" = "0" ]]; then
         echo $(( ($(echo "${sizes}") + 500000) / 1000 / 1000)) MB
        else

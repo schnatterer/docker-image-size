@@ -10,10 +10,8 @@ set -o nounset -o pipefail
 
 # TODO print image name
 
-# TODO implement repo v1 manifest?
 # TODO library only on docker.io -> example: r.j3ss.co/reg@sha256:12f48bf43adaa05f14bef571ff8da213767410c2aaf1a1af7d7711848720cf295
 
-# TODO implement tests for each implementation to see which ones support which case
 function main() {
 
     checkArgs "$@"
