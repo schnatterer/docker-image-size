@@ -40,6 +40,24 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     assertSuccess
 }
 
+@test "Returns filesize for multiple architectures ${COMMAND}" {
+    skipFor "reg"
+    skipFor "curl"
+
+   run ${COMMAND} debian:buster-20190910-slim
+    [[ ${output} =~ "amd64 linux" ]]
+    [[ ${output} =~ "arm64 linux" ]]
+}
+
+@test "Returns filesize for multiple architectures with OS version ${COMMAND}" {
+    skipFor "reg"
+    skipFor "curl"
+
+   run ${COMMAND} openjdk:11.0.4-windowsservercore
+    [[ ${output} =~ "amd64 windows 10.0.14393.3204" ]]
+    [[ ${output} =~ "amd64 windows 10.0.17134.1006" ]]
+}
+
 @test "Returns filesize for V1 Manifest ${COMMAND}" {
     skipFor "reg"
     skipFor "docker"
@@ -87,7 +105,6 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
    run ${COMMAND} quay.io/prometheus/prometheus:v2.12.0
     assertSuccess
 }
-
 
 @test "Returns non zero and error message on manifest unknown ${COMMAND}" {
    run ${COMMAND} gcr.io/distroless/java:NOTEXISTS

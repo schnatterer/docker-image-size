@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 if [[ ! -z "${DEBUG}" ]]; then set -x; fi
-GOARCH=${GOARCH-"amd64"}
-GOOS=${GOOS-"linux"}
 
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
@@ -20,17 +18,20 @@ function main() {
     fi
 
     if [[ "${manifest:0:1}" == "[" ]]; then
-      if [[ $(echo "${manifest}" |  jq '. | length') == 1 ]]; then
-        sizes=$( echo "${manifest}" | jq -e ".[] | .SchemaV2Manifest.layers[].size")
-      else
-        sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[].size")
-      fi
 
-      if [[ "${?}" = "0" ]]; then
-        echo "${1}:" $(createAndPrintSum "${sizes}")
-       else
-         fail "Processing response from docker manifest failed. Response: ${manifest}"
-       fi
+      length=$(echo "${manifest}" |  jq '. | length')
+      for (( i=0; i<${length}; i ++ ))
+      do
+         currentObj=$(echo "${manifest}" | jq  ".[${i}]")
+         optionalOsVersion=$(echo "${currentObj}" | jq -r  '" " + .Descriptor.platform."os.version"' 2>/dev/null)
+         arcAndOs=$(echo "${currentObj}" | jq -r ' .Descriptor.platform.architecture + " " + .Descriptor.platform.os')
+         sizes=$( echo "${currentObj}" | jq -e ".SchemaV2Manifest.layers[].size")
+        if [[ "${?}" = "0" ]]; then
+          echo "${1} ${arcAndOs}${optionalOsVersion}:" $(createAndPrintSum "${sizes}")
+         else
+           fail "Processing response from docker manifest failed. Response: ${manifest}"
+         fi
+      done
     else
       sizes=$( echo "${manifest}" | jq -e '.SchemaV2Manifest.layers[].size')
       if [[ "${?}" = "0" ]]; then
@@ -39,10 +40,6 @@ function main() {
           fail "Processing response from docker manifest failed. Response: ${manifest}"
       fi
     fi
-}
-
-function createAndPrintSum() {
-    echo $(( ($(echo "${1}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
 }
 
 function checkArgs() {
@@ -67,6 +64,10 @@ function checkRequiredCommands() {
 
 function isInstalled() {
     command -v "${1}" >/dev/null 2>&1 || return 1
+}
+
+function createAndPrintSum() {
+    echo $(( ($(echo "${1}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
 }
 
 function fail() {
