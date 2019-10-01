@@ -21,24 +21,28 @@ function main() {
 
     if [[ "${manifest:0:1}" == "[" ]]; then
       if [[ $(echo "${manifest}" |  jq '. | length') == 1 ]]; then
-        sizes=$( echo "${manifest}" | jq -e ".[] | .SchemaV2Manifest.layers[0].size")
+        sizes=$( echo "${manifest}" | jq -e ".[] | .SchemaV2Manifest.layers[].size")
       else
-        sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[0].size")
+        sizes=$( echo "${manifest}" | jq -e ".[] | select(.Descriptor.platform.architecture == \"${GOARCH}\" and .Descriptor.platform.os == \"${GOOS}\").SchemaV2Manifest.layers[].size")
       fi
 
       if [[ "${?}" = "0" ]]; then
-        echo "${1}:" $(( ($(echo "${sizes}") + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(createAndPrintSum "${sizes}")
        else
          fail "Processing response from docker manifest failed. Response: ${manifest}"
        fi
     else
       sizes=$( echo "${manifest}" | jq -e '.SchemaV2Manifest.layers[].size')
       if [[ "${?}" = "0" ]]; then
-          echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+          echo "${1}:" $(createAndPrintSum "${sizes}")
       else
           fail "Processing response from docker manifest failed. Response: ${manifest}"
       fi
     fi
+}
+
+function createAndPrintSum() {
+    echo $(( ($(echo "${1}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
 }
 
 function checkArgs() {

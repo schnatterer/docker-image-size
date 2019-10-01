@@ -24,7 +24,7 @@ function main() {
     sizes=$(echo ${response} | jq -e '.layers[].size' 2>/dev/null)
 
     if [[ "${?}" = "0" ]]; then
-        echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(createAndPrintSum "${sizes}")
     else
         fail "Response: ${response}"
     fi
@@ -148,6 +148,10 @@ function checkManifestList() {
     fi
   fi
   echo "${response}"
+}
+
+function createAndPrintSum() {
+    echo $(( ($(echo "${1}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
 }
 
 function failIfEmpty() {

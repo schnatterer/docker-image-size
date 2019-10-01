@@ -23,7 +23,7 @@ function main() {
     sizes=$(eval "${regCommand} manifest ${1}"  | jq -e '.layers[].size' 2>/dev/null)
 
     if [[ "${?}" = "0" ]]; then
-        echo "${1}:" $(( ($(echo "${sizes}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
+        echo "${1}:" $(createAndPrintSum "${sizes}")
     else
         fail "Calling reg failed"
     fi
@@ -51,6 +51,10 @@ function checkRequiredCommands() {
 
 function isInstalled() {
     command -v "${1}" >/dev/null 2>&1 || return 1
+}
+
+function createAndPrintSum() {
+    echo $(( ($(echo "${1}" | paste -sd+ | bc) + 500000) / 1000 / 1000)) MB
 }
 
 function fail() {
