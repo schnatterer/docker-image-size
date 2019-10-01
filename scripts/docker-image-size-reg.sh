@@ -13,7 +13,7 @@ function main() {
     regCommand="reg"
     isInstalled "reg" || {
         echo "reg not installed, trying to use docker image 'r.j3ss.co/reg'"
-         regCommand="docker run --rm r.j3ss.co/reg"
+        regCommand="docker run --rm r.j3ss.co/reg"
         isInstalled "docker" || {
             echo "Docker not installed. Out of options."
             return 1
@@ -31,7 +31,7 @@ function main() {
 
 function checkArgs() {
 
-  if [[ $# < 1 ]]; then
+  if [[ $# != 1 ]]; then
     echo "Usage: $(basename "$0") NAME[:TAG|@DIGEST]"
     exit 1
   fi

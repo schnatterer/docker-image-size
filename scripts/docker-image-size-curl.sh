@@ -29,7 +29,7 @@ function main() {
 
 function checkArgs() {
 
-  if [[ $# < 1 ]]; then
+  if [[ $# != 1 ]]; then
     echo "Usage: $(basename "$0") NAME[:TAG|@DIGEST]"
     exit 1
   fi
