@@ -2,19 +2,12 @@
 
 COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 
-@test "Returns filesize for docker hub library ${COMMAND}" {
+@test "Returns filesize for docker hub library (latest)${COMMAND}" {
    run ${COMMAND} debian
     assertSuccess
 }
 
-@test "Returns filesize for 'library' at other repo ${COMMAND}" {
-   skipFor "curl"
-
-   run ${COMMAND} r.j3ss.co/reg:v0.16.0
-   assertSuccess
-}
-
-@test "Returns filesize for docker hub library qualified with repo ${COMMAND}" {
+@test "Returns filesize for docker hub library qualified with docker.io ${COMMAND}" {
    run ${COMMAND} docker.io/debian
     assertSuccess
 }
@@ -24,7 +17,18 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     assertSuccess
 }
 
-@test "Returns filesize for docker hub repo ${COMMAND}" {
+@test "Returns filesize for docker hub library qualified with docker.io and 'library'' ${COMMAND}" {
+   run ${COMMAND} docker.io/library/debian
+    assertSuccess
+}
+
+@test "Returns filesize for docker hub library with tag ${COMMAND}" {
+    # This returns a manifest v1 if no content type set
+   run ${COMMAND} debian:buster-20190910-slim
+    assertSuccess
+}
+
+@test "Returns filesize for docker hub repo (latest) ${COMMAND}" {
     # This returns a manifest v1 if no content type set
    run ${COMMAND} nginxinc/nginx-unprivileged
     assertSuccess
@@ -45,12 +49,6 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     assertSuccess
 }
 
-@test "Returns filesize for docker library with tag ${COMMAND}" {
-    # This returns a manifest v1 if no content type set
-   run ${COMMAND} nginx:1.17.2
-    assertSuccess
-}
-
 @test "Returns filesize for repo digest ${COMMAND}" {
    run ${COMMAND} nginxinc/nginx-unprivileged@sha256:dc95dc03b407a7c49fb0a35c3b835b736dc621024fb14b1e8c2f568d99fffc63
     assertSuccess
@@ -62,6 +60,13 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 
    run ${COMMAND} nginxinc/nginx-unprivileged@sha256:2a10487719ac6ad15d02d832a8f43bafa9562be7ddc8f8bd710098aa54560cc2
     assertSuccess
+}
+
+@test "Returns filesize for 'library' at other repo ${COMMAND}" {
+   skipFor "curl"
+
+   run ${COMMAND} r.j3ss.co/reg:v0.16.0
+   assertSuccess
 }
 
 @test "Returns filesize for gcr ${COMMAND}" {
