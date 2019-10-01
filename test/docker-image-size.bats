@@ -81,8 +81,6 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 @test "Returns filesize for 'library' at other repo ${COMMAND}" {
-   skipFor "curl"
-
    run ${COMMAND} r.j3ss.co/reg:v0.16.0
    assertSuccess
 }

@@ -35,7 +35,7 @@ See [unit tests](test/docker-image-size.bats) for more details.
 |gcr.io | ✔️ | ✔️ | ✔️ |
 |quay.io | ✔️ | ✔️ | ❌️ |
 |mcr.microsoft.com | ❌ | ✔️ | ❌ |
-|r.j3ss.co | ❌ | ️✔️ | ✔️ |
+|r.j3ss.co | ️️✔️ | ️✔️ | ✔️ |
 
 ### Query with [genuinetools/reg](https://github.com/genuinetools/reg)
 

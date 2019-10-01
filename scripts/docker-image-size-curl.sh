@@ -8,19 +8,16 @@ DOCKER_HUB_HOST=index.docker.io
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
-# TODO library only on docker.io -> example: r.j3ss.co/reg@sha256:12f48bf43adaa05f14bef571ff8da213767410c2aaf1a1af7d7711848720cf295
-
 function main() {
 
     checkArgs "$@"
     checkRequiredCommands curl jq sed awk paste bc
 
     url="$(determineUrl "${1}")"
-    header="$(checkExtraHeaderNecessary "${url}")"
+    response=$(queryManifest "${url}")
+    if [[ "${?}" != "0" ]]; then exit 1; fi
 
-    response=$(queryManifest "${url}" "${header}")
-
-    response=$(checkManifestList "${response}" "${url}" "${header}")
+    response=$(checkManifestList "${response}" "${url}")
     sizes=$(echo ${response} | jq -e '.layers[].size' 2>/dev/null)
 
     if [[ "${?}" = "0" ]]; then
@@ -57,6 +54,7 @@ function isInstalled() {
 function determineUrl() {
 
     HOST=""
+    EFFECTIVE_HOST=${HOST}
 
     if [[ ! "${1}" == *"/"* ]]; then
         EFFECTIVE_HOST=${DOCKER_HUB_HOST}
@@ -74,7 +72,7 @@ function determineUrl() {
     fi
 
     IMAGE="$(parseImage ${1} ${HOST})"
-    if [[ ! "${IMAGE}" == *"/"* ]]; then
+    if [[ ! "${IMAGE}" == *"/"* ]] && [[ ${EFFECTIVE_HOST} == ${DOCKER_HUB_HOST} ]]; then
         EFFECTIVE_IMAGE="library/${IMAGE}"
     fi
 
@@ -88,12 +86,34 @@ function determineUrl() {
 
 function queryManifest() {
     url="${1}"
-    header="${2}"
-    # If trying to simplify this into a variable "-H $header" you enter quoting hell
-    if [[ ! -z "${header}" ]]; then
-        response=$(curl -sL -H "${header}" -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    response=$(curl -sLi -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    httpResponseCode=$(echo "${response}" | head -n 1 | cut -d$' ' -f2)
+    header=""
+
+    if [[ "${httpResponseCode}" == "401" ]]; then
+      # e.g. Www-Authenticate: Bearer realm="https://auth.docker.io/token",service="registry.docker.io",scope="repository:library/debian:pull"
+      # to: https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/debian:pull
+      # e.g. www-authenticate: Bearer realm="https://r.j3ss.co/auth",service="Docker registry",scope="repository:reg:pull"
+      # to https://r.j3ss.co/auth?service=Docker%20registry&scope=repository:reg:pull'
+      # URL encode any blanks such as service="Docker registry"
+      # Remove all remaining spaces at the end to avoid quoting issues
+      authUrl=$(echo "${response}" | grep -i www-Authenticate \
+                | sed 's|.*Bearer realm="\(.*\)"|\1|' | sed 's|",service|?service|' | sed 's|",scope|\&scope|' | tr -d '"' \
+                | sed 's| |%20|' |  tr -d '[:space:]' )
+      token="$(curl -sSL "${authUrl}" | jq -e --raw-output .token)"
+      header="Authorization: Bearer ${token}"
+    elif [[ "${httpResponseCode}" == "200" ]]; then
+      response=$(echo ${response} | awk 'END{print}')
     else
+      fail "Request failed. Response: ${response}"
+      echo "after fail"
+    fi
+
+    # If trying to simplify this into a variable "-H $header" you enter quoting hell
+    if [[ -z "${header}" ]]; then
         response=$(curl -sL -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
+    else
+        response=$(curl -sL -H "${header}" -H "Accept:application/vnd.docker.distribution.manifest.v2+json" "${url}")
     fi
 
     if [[ "${?}" != "0" ]] ||  [[ -z ${response} ]]; then fail "response empty"; fi
@@ -119,30 +139,16 @@ function parseTag() {
     echo "${2}" | sed "s|.*${IMAGE}[:@]*\(.*\)|\1|"
 }
 
-function checkExtraHeaderNecessary() {
-    if [[ "${1}" == *"docker.com"* ]] || [[ "${1}" == *"docker.io"* ]]; then
-      repo=$(parseRepo $1)
-      token="$(curl -sSL "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull" \
-                | jq -e --raw-output .token)"
-     echo -n "Authorization: Bearer ${token}"
-    fi
-}
-
-function parseRepo() {
-    echo "${1}" | sed 's/.*v2\/\(.*\)\/manifests.*/\1/'
-}
-
 function checkManifestList() {
   response="${1}"
   url="${2}"
-  header="${3}"
 
   mediaType=$(echo ${response} | jq -er '.mediaType' 2>/dev/null)
   if [[ "${mediaType}" == "application/vnd.docker.distribution.manifest.list.v2+json" ]]; then
     newDigest=$(echo ${response} | jq -er  ".manifests[] | select(.platform.architecture == \"${GOARCH}\" and .platform.os == \"${GOOS}\") | .digest")
     if [[ "${?}" = "0" ]]; then
         newUrl="$(echo ${url} | sed 's|\(.*\)/.*$|\1|')/${newDigest}"
-        response=$(queryManifest "${newUrl}" "${header}")
+        response=$(queryManifest "${newUrl}")
     else
       fail "Response: ${response}"
     fi
