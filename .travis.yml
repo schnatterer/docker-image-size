@@ -16,6 +16,8 @@ install:
  - npm install bats
 
 script:
- - COMMAND=scripts/docker-image-size-curl.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats
- - COMMAND=scripts/docker-image-size-reg.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats
- - COMMAND=scripts/docker-image-size-docker.sh /usr/bin/time node_modules/bats/bin/bats test/*.bats
+ - COMMAND=scripts/docker-image-size-curl.sh /usr/bin/time node_modules/bats/bin/bats test/docker-image-size.bats
+ - COMMAND=scripts/docker-image-size-reg.sh /usr/bin/time node_modules/bats/bin/bats test/docker-image-size.bats
+ - COMMAND=scripts/docker-image-size-docker.sh /usr/bin/time node_modules/bats/bin/bats test/docker-image-size.bats
+
+ - COMMAND=scripts/docker-image-sizes.sh /usr/bin/time node_modules/bats/bin/bats test/docker-image-sizes.bats

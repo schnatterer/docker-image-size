@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
 
+if [[ ! -z "${DEBUG}" ]]; then set -x; fi
+DIS_IMPL=${DIS_IMPL-"docker"}
+IMAGE="${1}"
+TAG_REGEX="${2-.*}" # By default: Process all tags
+COMMAND="docker-image-size-${DIS_IMPL}.sh"
+
+set -o nounset -o pipefail -o errexit
+
+BASEDIR=$(dirname $0)
+ABSOLUTE_BASEDIR="$( cd ${BASEDIR} && pwd )"
 
 function main() {
   checkArgs "$@"
-  checkRequiredCommands docker-image-size
-
-  IMAGE="${1}"
-  TAG_REGEX="${2}"
+  checkRequiredCommand
 
   regCommand="reg"
   isInstalled "reg" || {
@@ -18,15 +25,24 @@ function main() {
        }
   }
 
-  eval "${regCommand}" tags "${IMAGE}" | grep -P "${TAG_REGEX}"  \
-    | xargs -I{} docker-image-size "${IMAGE}:{}"
+  # grep -P (perl regex) would be much more versatile but not as compatible (not present in e.g. busybox)
+  eval "${regCommand}" tags "${IMAGE}" | grep -E "${TAG_REGEX}"  \
+    | xargs -I{} ${COMMAND} "${IMAGE}:{}"
 }
 
-function checkRequiredCommands() {
+function checkRequiredCommand() {
     missingCommands=""
-    for currentCommand in "$@"
+    commands=( "${COMMAND}" )
+    for currentCommand in "$commands"
     do
-        command -v "${currentCommand}" >/dev/null 2>&1 || missingCommands="${missingCommands} ${currentCommand}"
+        # Search on the PATH and next to this script
+        if [[ -z $(command -v "${currentCommand}" 2>&1) ]]; then
+          if [[ ! -z $(command -v "${ABSOLUTE_BASEDIR}/${currentCommand}" 2>&1) ]]; then
+             COMMAND="${ABSOLUTE_BASEDIR}/${COMMAND}"
+          else
+            missingCommands="${missingCommands} ${currentCommand}"
+          fi
+       fi
     done
 
     if [[ ! -z "${missingCommands}" ]]; then
@@ -40,8 +56,8 @@ function isInstalled() {
 
 function checkArgs() {
 
-  if [[ $# != 2 ]]; then
-    echo "Usage: $(basename "$0") NAME TAG_REGEX"
+  if [[ $# < 1 ]]; then
+    echo "Usage: $(basename "$0") NAME [TAG_REGEX]"
     echo "e.g.: $(basename "$0") openjdk '^11.0.4-'"
     exit 1
   fi
