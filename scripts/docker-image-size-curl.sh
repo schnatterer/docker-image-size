@@ -4,7 +4,7 @@ if [[ ! -z "${DEBUG}" ]]; then set -x; fi
 GOARCH=${GOARCH-"amd64"}
 GOOS=${GOOS-"linux"}
 DOCKER_HUB_HOST=index.docker.io
-
+NAME="${1}"
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
 
@@ -168,7 +168,7 @@ function failIfEmpty() {
 
 function fail() {
     error "$@"
-    error Calculating size failed
+    error Calculating size failed for ${NAME}
     exit 1
 }
 

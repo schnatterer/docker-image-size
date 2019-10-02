@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ ! -z "${DEBUG}" ]]; then set -x; fi
+NAME="${1}"
 
 set -o nounset -o pipefail
 #Not setting "-o errexit", because script checks errors and returns custom error messages
@@ -72,7 +73,7 @@ function createAndPrintSum() {
 
 function fail() {
     error "$@"
-    error Calculating size failed
+    error Calculating size failed for ${NAME}
     exit 1
 }
 
