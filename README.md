@@ -11,9 +11,10 @@ Queries and compares docker image sizes.
 
 
 - [Installation](#installation)
+  - [Docker](#docker)
   - [Local](#local)
 - [Usage](#usage)
-  - [Docker](#docker)
+  - [Docker](#docker-1)
   - [Local](#local-1)
   - [Examples](#examples)
   - [Implementations](#implementations)
@@ -32,6 +33,17 @@ Queries and compares docker image sizes.
 ### Docker
 
 Most convenient: don't install at all; just run docker container (see [usage](#usage)).
+You can use it even more convenient by establishing an alias
+
+```bash
+alias docker-image-sizes='docker run --rm -e DIS_IMPL schnatterer/docker-image-size'
+``` 
+
+Note that the image is cached locally, if you ever want to "update", just do a 
+
+```bash
+docker pull schnatterer/docker-image-size
+```
 
 ### Local
 * Install `jq`, e.g `sudo apt get install jq`  
@@ -57,6 +69,8 @@ though.
 
 ```bash
 docker run --rm schnatterer/docker-image-size <docker image name> [<extended grep regex on docker tag>]
+# Or with the alias mentioned above:
+docker-image-sizes <docker image name> [<extended grep regex on docker tag>]
 ```
 
 ### Local
