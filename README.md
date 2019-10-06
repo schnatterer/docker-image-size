@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.org/schnatterer/docker-image-size.svg?branch=master)](https://travis-ci.org/schnatterer/docker-image-size)
 [![](https://images.microbadger.com/badges/image/schnatterer/docker-image-size.svg)](https://hub.docker.com/r/schnatterer/docker-image-size)
 
-Queries and compares docker image sizes.
+Queries and compares docker image sizes.  
+See also [this blog post](http://blog.schnatterer.info/2019/10/03/querying-docker-image-sizes-via-the-command-line).
 
 <!-- Update with `doctoc --notitle README.md`. See https://github.com/thlorenz/doctoc -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -16,6 +17,7 @@ Queries and compares docker image sizes.
 - [Usage](#usage)
   - [Docker](#docker-1)
   - [Local](#local-1)
+  - [Querying a single image](#querying-a-single-image)
   - [Examples](#examples)
   - [Implementations](#implementations)
   - [Features per implementation](#features-per-implementation)
@@ -37,6 +39,9 @@ You can use it even more convenient by establishing an alias
 
 ```bash
 alias docker-image-sizes='docker run --rm -e DIS_IMPL schnatterer/docker-image-size'
+# If you want to query the size of a single image (faster)
+# e.g. using curl (alternatives: docker, reg)
+alias docker-image-size='docker run --rm --entrypoint docker-image-size-curl.sh schnatterer/docker-image-size'
 ``` 
 
 Note that the image is cached locally, if you ever want to "update", just do a 
@@ -81,6 +86,18 @@ docker-image-sizes <docker image name> [<extended grep regex on docker tag>]
 scripts/docker-image-sizes.sh <docker image name> <extended grep regex on docker tag>
 ```
 
+### Querying a single image
+
+If you care about size of one image only you can use the [implementations](#implementations) directly, which for the 
+`curl` implementation responds in about a second. Note that it takes only one parameter, similar to `docker run`:
+
+```bash
+# e.g. using curl (alternatives: docker, reg)
+$ docker-image-size-curl.sh <docker image name>[:<Tag> | @<RepoDigest>]
+# Or using the docker image
+$ docker run --rm --entrypoint docker-image-size-curl.sh schnatterer/docker-image-size <docker image name>[:<Tag> | @<RepoDigest>]
+``` 
+
 ### Examples
 
 ```bash
@@ -90,6 +107,8 @@ docker-image-sizes adoptopenjdk 11
 docker-image-sizes adoptopenjdk '^11.0.4'
 # Multi arg results can be filtered using grep 
 docker-image-sizes adoptopenjdk '^11.0.4' | grep 'amd64 linux'
+# Query a single image (fastest!)
+docker-image-size-curl.sh adoptopenjdk:11.0.4_11-jre-hotspot
 ```
 
 ### Implementations
