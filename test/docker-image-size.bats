@@ -54,8 +54,8 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
     skipFor "curl"
 
    run ${COMMAND} openjdk:11.0.4-windowsservercore
-    [[ ${output} =~ "amd64 windows 10.0.14393.3204" ]]
-    [[ ${output} =~ "amd64 windows 10.0.17134.1006" ]]
+    [[ ${output} =~ "amd64 windows 10.0.14393" ]]
+    [[ ${output} =~ "amd64 windows 10.0.17134" ]]
 }
 
 @test "Returns filesize for V1 Manifest ${COMMAND}" {
@@ -81,7 +81,7 @@ COMMAND=${COMMAND:-"scripts/docker-image-size-curl.sh"}
 }
 
 @test "Returns filesize for 'library' at other repo ${COMMAND}" {
-   run ${COMMAND} r.j3ss.co/reg:v0.16.0
+   run ${COMMAND} r.j3ss.co/reg:v0.15.8
    assertSuccess
 }
 
